@@ -130,15 +130,20 @@ class BackgroundLocationService: MethodChannel.MethodCallHandler, PluginRegistry
     }
 
     private fun stopLocationService(): Int {
+    try {
         service?.removeLocationUpdates()
-        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(receiver!!)
-
-        if (bound) {
+        if (context != null && receiver != null) {
+            LocalBroadcastManager.getInstance(context!!).unregisterReceiver(receiver!!)
+        }
+        if (bound && context != null) {
             context!!.unbindService(serviceConnection)
             bound = false
         }
+    } catch (e: IllegalArgumentException) {
+        Log.w("BackgroundLocation", "Receiver already unregistered: ${e.message}")
+    }
 
-        return 0
+    return 0
     }
 
     private fun setAndroidNotification(title: String?, message: String?, icon: String?):Int{
